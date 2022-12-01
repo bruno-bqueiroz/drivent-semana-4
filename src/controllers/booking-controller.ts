@@ -8,7 +8,8 @@ export async function getBooking(req: AuthenticatedRequest, res: Response) {
 
   try {
     const booking = await bookingService.getBooking(Number(userId));
-
+    
+    //LEMBRAR DE MUDAR RETORNO (APENAS bookingId COM OBJ Room);
     return res.status(httpStatus.OK).send(booking);
   } catch (error) {
     if (error.name === "NotFoundError") {
@@ -17,3 +18,28 @@ export async function getBooking(req: AuthenticatedRequest, res: Response) {
     return res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
   }
 }
+
+export async function postBooking(req: AuthenticatedRequest, res: Response) {
+  const { userId } = req;
+
+  const { roomId } = req.body;
+
+  if (!roomId) {
+    return res.sendStatus(httpStatus.BAD_REQUEST);
+  }
+
+  try {
+    const booking = await bookingService.postBooking(Number(userId), Number(roomId));
+
+    return res.status(httpStatus.OK).send({ bookingId: booking.id });
+  } catch (error) {
+    if (error.name === "NotFoundError") {
+      return res.sendStatus(httpStatus.NOT_FOUND);
+    }
+    if (error.name === "forbiddenError") {
+      return res.sendStatus(httpStatus.FORBIDDEN);
+    }
+    return res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
+  }
+}
+
