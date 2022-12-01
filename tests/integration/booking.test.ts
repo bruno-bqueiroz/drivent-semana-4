@@ -69,7 +69,6 @@ describe("GET /booking", () => {
       await createRoomWithHotelId(createdHotel.id);
 
       const response = await server.get("/booking").set("Authorization", `Bearer ${token}`);
-      console.log(response);
 
       expect(response.status).toEqual(httpStatus.NOT_FOUND);
     });
@@ -148,7 +147,24 @@ describe("POST /booking", () => {
       await createRoomWithHotelId(createdHotel.id);
 
       const response = await server.post("/booking").set("Authorization", `Bearer ${token}`).send({ roomId: 100000 });
-      console.log(response);
+      
+      expect(response.status).toEqual(httpStatus.NOT_FOUND);
+    });
+
+    it("should respond with status 404 when has no roomId", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      const enrollment = await createEnrollmentWithAddress(user);
+      const ticketType = await createTicketTypeWithHotel();
+      const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+      await createPayment(ticket.id, ticketType.price);
+  
+      //TODO factory
+      const createdHotel = await createHotel();
+      await createRoomWithHotelId(createdHotel.id);
+
+      const response = await server.post("/booking").set("Authorization", `Bearer ${token}`);
+      
       expect(response.status).toEqual(httpStatus.NOT_FOUND);
     });
 
@@ -170,7 +186,7 @@ describe("POST /booking", () => {
       }
 
       const response = await server.post("/booking").set("Authorization", `Bearer ${token}`).send({ roomId: createdRoom.id });
-      console.log(response);
+     
       expect(response.status).toEqual(httpStatus.FORBIDDEN);
     });
 
@@ -187,10 +203,9 @@ describe("POST /booking", () => {
       const createdRoom = await createRoomWithHotelId(createdHotel.id);
 
       const response = await server.post("/booking").set("Authorization", `Bearer ${token}`).send({ roomId: createdRoom.id });
-      console.log(response.body);
+
       expect(response.status).toEqual(httpStatus.OK);
-  
-      expect(response.body); 
+      expect(response.body).toHaveProperty("bookingId"); 
     });
   });
 });
