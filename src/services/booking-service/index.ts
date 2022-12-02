@@ -19,7 +19,7 @@ async function listHotels(userId: number) {
 }
 
 async function getBooking(userId: number) {
-  const booking = await bookingRepository.findBookings(userId);
+  const booking = await bookingRepository.findBookingsWithRoom(userId);
   if(!booking) throw notFoundError();
   return booking;
 }
@@ -38,9 +38,29 @@ async function postBooking(userId: number, roomId: number, ) {
   return booking;
 }
 
+async function putBooking(userId: number, roomId: number, bookingId: number ) {
+  await listHotels(userId);
+
+  const temBooking = await bookingRepository.findBooking(bookingId);
+  if (!temBooking) throw forbiddenError();
+
+  const temRoom = await hotelRepository.findRoomByRoomId(roomId);
+
+  if(!temRoom) throw notFoundError();
+  if(temRoom.Booking.length >= temRoom.capacity) throw forbiddenError();
+
+  const updateBooking = await bookingRepository.putBooking(bookingId, roomId);
+  
+  if(!updateBooking) throw forbiddenError();
+  
+  return updateBooking;
+}
+
 const bookingService = {
   getBooking,
-  postBooking
+  postBooking,
+  putBooking
+  
 };
   
 export default bookingService;
