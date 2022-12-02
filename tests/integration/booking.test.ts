@@ -151,21 +151,21 @@ describe("POST /booking", () => {
       expect(response.status).toEqual(httpStatus.NOT_FOUND);
     });
 
-    it("should respond with status 404 when has no roomId", async () => {
+    it("should respond with status 403 when user ticket is remote, no hosting or no paid ", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       const enrollment = await createEnrollmentWithAddress(user);
-      const ticketType = await createTicketTypeWithHotel();
+      const ticketType = await createTicketTypeRemote();
       const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
-      await createPayment(ticket.id, ticketType.price);
-  
-      //TODO factory
-      const createdHotel = await createHotel();
-      await createRoomWithHotelId(createdHotel.id);
+      const payment = await createPayment(ticket.id, ticketType.price);
+      //Hoteis no banco
 
-      const response = await server.post("/booking").set("Authorization", `Bearer ${token}`);
-      
-      expect(response.status).toEqual(httpStatus.NOT_FOUND);
+      const createdHotel = await createHotel();
+      const createdRoom = await createRoomWithHotelId(createdHotel.id);
+
+      const response = await server.post("/booking").set("Authorization", `Bearer ${token}`).send({ roomId: createdRoom.id });
+     
+      expect(response.status).toEqual(httpStatus.FORBIDDEN);
     });
 
     it("should respond with status 403 when has no vacancy in the room", async () => {
