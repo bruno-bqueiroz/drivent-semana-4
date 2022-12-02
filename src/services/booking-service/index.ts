@@ -41,13 +41,12 @@ async function postBooking(userId: number, roomId: number, ) {
 async function putBooking(userId: number, roomId: number, bookingId: number ) {
   await listHotels(userId);
 
-  const temBooking = await bookingRepository.findBooking(bookingId);
-  if (!temBooking) throw forbiddenError();
-
   const temRoom = await hotelRepository.findRoomByRoomId(roomId);
-
   if(!temRoom) throw notFoundError();
   if(temRoom.Booking.length >= temRoom.capacity) throw forbiddenError();
+
+  const temBooking = await bookingRepository.findBooking(bookingId);
+  if (!temBooking) throw forbiddenError();
 
   const updateBooking = await bookingRepository.putBooking(bookingId, roomId);
   
