@@ -9,10 +9,10 @@ export async function getBooking(req: AuthenticatedRequest, res: Response) {
   try {
     const booking = await bookingService.getBooking(Number(userId));
     
-    //LEMBRAR DE MUDAR RETORNO (APENAS bookingId COM OBJ Room
-    //{ bookingId: booking.id, Room: booking.Room }
-
-    return res.status(httpStatus.OK).send(booking);
+    return res.status(httpStatus.OK).send({
+      id: booking.id,
+      Room: booking.Room
+    });
   } catch (error) {
     if (error.name === "NotFoundError") {
       return res.sendStatus(httpStatus.NOT_FOUND);

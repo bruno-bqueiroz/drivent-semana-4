@@ -92,10 +92,6 @@ describe("GET /booking", () => {
   
       expect(response.body).toEqual({
         id: createdBooking.id,
-        userId: createdBooking.userId,
-        roomId: createdBooking.roomId,
-        createdAt: createdBooking.createdAt.toISOString(),
-        updatedAt: createdBooking.updatedAt.toISOString(),
         Room: {
           id: createdRoom.id,
           name: createdRoom.name,
@@ -149,6 +145,23 @@ describe("POST /booking", () => {
       const response = await server.post("/booking").set("Authorization", `Bearer ${token}`).send({ roomId: 100000 });
       
       expect(response.status).toEqual(httpStatus.NOT_FOUND);
+    });
+
+    it("should respond with status 404 when has no roomId", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      const enrollment = await createEnrollmentWithAddress(user);
+      const ticketType = await createTicketTypeWithHotel();
+      const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+      await createPayment(ticket.id, ticketType.price);
+  
+      //TODO factory
+      const createdHotel = await createHotel();
+      await createRoomWithHotelId(createdHotel.id);
+
+      const response = await server.post("/booking").set("Authorization", `Bearer ${token}`);
+      
+      expect(response.status).toEqual(httpStatus.BAD_REQUEST);
     });
 
     it("should respond with status 403 when user ticket is remote, no hosting or no paid ", async () => {
@@ -250,6 +263,23 @@ describe("PUT /booking/:bookingId", () => {
       const response = await server.put("/booking/1").set("Authorization", `Bearer ${token}`).send({ roomId: 100000 });
       
       expect(response.status).toEqual(httpStatus.NOT_FOUND);
+    });
+
+    it("should respond with status 404 when has no room", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      const enrollment = await createEnrollmentWithAddress(user);
+      const ticketType = await createTicketTypeWithHotel();
+      const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+      await createPayment(ticket.id, ticketType.price);
+  
+      //TODO factory
+      const createdHotel = await createHotel();
+      await createRoomWithHotelId(createdHotel.id);
+
+      const response = await server.put("/booking/1").set("Authorization", `Bearer ${token}`);
+      
+      expect(response.status).toEqual(httpStatus.BAD_REQUEST);
     });
 
     it("should respond with status 403 when booking does not exist", async () => {
